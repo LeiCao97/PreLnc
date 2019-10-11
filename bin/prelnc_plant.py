@@ -241,13 +241,13 @@ def mRNA_translate(mRNA):
 def protein_param(putative_seqprot):
     return putative_seqprot.isoelectric_point()
 
-def get_feature(lncFA,pcFA,heDAT,outFILE):
-    f_out = open(outFILE+".feature.txt", "w")
+def get_feature(FA,heDAT,outFILE):
+    f_out = open(outFILE+".feature", "w")
     test_count = 0
     transcript_len = dict()
     ### get feature from lnc_fasta
     #### run txCdsPredict on the input FASTA file ####
-    cmd = "txCdsPredict " + lncFA + " -anyStart tmp.cds"
+    cmd = "txCdsPredict " + FA + " -anyStart tmp.cds"
     os.system(cmd)
     cds_len = dict()
     cds_score = dict()
@@ -286,27 +286,23 @@ def get_feature(lncFA,pcFA,heDAT,outFILE):
     fickett_obj = Fickett()
     ####end extract peptide_length,Fickett_score,ORF_integrity (CPC2) ####
     ## read the FASAT file of transcripts
-    f_in = open(lncFA)
+    f_in = open(FA)
     for record in SeqIO.parse(f_in, "fasta"):
         ID = record.id
         first = ID.split("|")
         seq = record.seq
         seq_len = len(seq)
-        ACG_mer = seq.count("ACG")*100/float(seq_len-2)
-        AGC_mer = seq.count("AGC")*100/float(seq_len-2)
-        CAG_mer = seq.count("CAG")*100/float(seq_len-2)
-        CAT_mer = seq.count("CAT")*100/float(seq_len-2)
-        #CCA_mer = seq.count("CCA")*100/float(seq_len-2)
-        CGG_mer = seq.count("CGG")*100/float(seq_len-2)
-        CGT_mer = seq.count("CGT")*100/float(seq_len-2)
-        GAC_mer = seq.count("GAC")*100/float(seq_len-2)
-        GAG_mer = seq.count("GAG")*100/float(seq_len-2)
+        #ACC_mer = seq.count("ACC")*100/float(seq_len-2)
+        #ATC_mer = seq.count("ATC")*100/float(seq_len-2)
+        #ATG_mer = seq.count("ATG")*100/float(seq_len-2)
+        #CAT_mer = seq.count("CAT")*100/float(seq_len-2)
+        CTA_mer = seq.count("CTA")*100/float(seq_len-2)
         #GAT_mer = seq.count("GAT")*100/float(seq_len-2)
-        GGC_mer = seq.count("GGC")*100/float(seq_len-2)
-        GGG_mer = seq.count("GGG")*100/float(seq_len-2)
+        #GGT_mer = seq.count("GGT")*100/float(seq_len-2)
+        #GTA_mer = seq.count("GTA")*100/float(seq_len-2) 
+        #GTC_mer = seq.count("GTC")*100/float(seq_len-2)
         #TAC_mer = seq.count("TAC")*100/float(seq_len-2)
-        TAG_mer = seq.count("TAG")*100/float(seq_len-2)
-        TCA_mer = seq.count("TCA")*100/float(seq_len-2)
+        TGG_mer = seq.count("TGG")*100/float(seq_len-2)
         # Translating nucleotides to peptide sequences according to frame shift
         frame_0 = frame_translation(seq, 0, genetic_code=1)
         stop_count_0 = frame_0.count("*")
@@ -331,7 +327,7 @@ def get_feature(lncFA,pcFA,heDAT,outFILE):
         else:
             orf_fullness = -1
             isoelectric_point = 0.0   
-        hexamer = extract_feature_from_seq(seq = seq, stt = start_codons,stp = stop_codons,c_tab=coding,g_tab=noncoding)
+        hexamer = extract_feature_from_seq(seq = seq, stt = start_codons,stp = stop_codons,c_tab=coding,g_tab=noncoding)  
         # print features
         #print("%s"%first[0], end='\t', file=f_out)
         print("%d"%seq_len, end='\t', file=f_out)
@@ -344,146 +340,22 @@ def get_feature(lncFA,pcFA,heDAT,outFILE):
         print("%d"%cds_score[first[0]], end='\t', file=f_out)
         #print("%s"%str(pep_len), end='\t', file=f_out)
         print("%s"%str(fickett_score), end='\t', file=f_out)
-        print("%s"%str(isoelectric_point), end='\t', file=f_out)
+        #print("%s"%str(isoelectric_point), end='\t', file=f_out)
         print("%s"%str(orf_fullness), end='\t', file=f_out)
         print("%s"%str(hexamer), end='\t', file=f_out)
-        print("%0.4f"%ACG_mer, end = "\t", file=f_out)
-        print("%0.4f"%AGC_mer, end = "\t", file=f_out)
-        print("%0.4f"%CAG_mer, end = "\t", file=f_out)
-        print("%0.4f"%CAT_mer, end = "\t", file=f_out)
-        #print("%0.4f"%CCA_mer, end = "\t", file=f_out)
-        print("%0.4f"%CGG_mer, end = "\t", file=f_out)
-        print("%0.4f"%CGT_mer, end = "\t", file=f_out)
-        print("%0.4f"%GAC_mer, end = "\t", file=f_out)
-        print("%0.4f"%GAG_mer, end = "\t", file=f_out)
+        #print("%0.4f"%ACC_mer, end = "\t", file=f_out)
+        #print("%0.4f"%ATC_mer, end = "\t", file=f_out)
+        #print("%0.4f"%ATG_mer, end = "\t", file=f_out)
+        #print("%0.4f"%CAT_mer, end = "\t", file=f_out)
+        print("%0.4f"%CTA_mer, end = "\t", file=f_out)
         #print("%0.4f"%GAT_mer, end = "\t", file=f_out)
-        print("%0.4f"%GGC_mer, end = "\t", file=f_out)
-        print("%0.4f"%GGG_mer, end = "\t", file=f_out)
+        #print("%0.4f"%GGT_mer, end = "\t", file=f_out)
+        #print("%0.4f"%GTA_mer, end = "\t", file=f_out)
+        #print("%0.4f"%GTC_mer, end = "\t", file=f_out)
         #print("%0.4f"%TAC_mer, end = "\t", file=f_out)
-        print("%0.4f"%TAG_mer, end = "\t", file=f_out)
-        print("%0.4f"%TCA_mer, end = "\t", file=f_out)
-        print("%d"%1, file=f_out)
-    f_in.close()
-    ### get feature from pc_fasta
-    #### run txCdsPredict on the input FASTA file ####
-    cmd = "txCdsPredict " + pcFA + " -anyStart tmp.cds"
-    os.system(cmd)
-    cds_len = dict()
-    cds_score = dict()
-    temp=open("tmp.cds")
-    for line in temp:
-        line_array = line.split()
-        id_array = line_array[0].split('|')
-        start=0
-        end=0
-        trans_id = id_array[0]
-        pred_start = int(line_array[1])
-        pred_end = int(line_array[2])   
-        pred_len = pred_end-pred_start
-        cds_len[trans_id] = pred_len
-        cds_score[trans_id] = float(line_array[5])
-    temp.close()
-    os.system("rm tmp.cds")
-    ############ end of running txCdsPredict ################
-    #### extract hexamer (CPAT)####
-    #build hexamer table from hexamer frequency file
-    coding={}
-    noncoding={}    
-    start_codons='ATG'
-    stop_codons='TAG,TAA,TGA'
-    for line in open(heDAT):
-        line = line.strip()
-        fields = line.split()
-        if fields[0] == 'hexamer':continue
-        coding[fields[0]] = float(fields[1])
-        noncoding[fields[0]] =  float(fields[2])
-    ####end extract hexamer ####
-    #### extract peptide_length,Fickett_score,ORF_integrity (CPC2) ####
-    strand = "+"
-    strinfoAmbiguous = re.compile("X|B|Z|J|U",re.I)
-    ptU = re.compile("U",re.I)
-    fickett_obj = Fickett()
-    ####end extract peptide_length,Fickett_score,ORF_integrity (CPC2) ####
-    ## read the FASAT file of transcripts
-    f_in = open(pcFA)
-    for record in SeqIO.parse(f_in, "fasta"):
-        ID = record.id
-        first = ID.split("|")
-        seq = record.seq
-        seq_len = len(seq)
-        ACG_mer = seq.count("ACG")*100/float(seq_len-2)
-        AGC_mer = seq.count("AGC")*100/float(seq_len-2)
-        CAG_mer = seq.count("CAG")*100/float(seq_len-2)
-        CAT_mer = seq.count("CAT")*100/float(seq_len-2)
-        #CCA_mer = seq.count("CCA")*100/float(seq_len-2)
-        CGG_mer = seq.count("CGG")*100/float(seq_len-2)
-        CGT_mer = seq.count("CGT")*100/float(seq_len-2)
-        GAC_mer = seq.count("GAC")*100/float(seq_len-2)
-        GAG_mer = seq.count("GAG")*100/float(seq_len-2)
-        #GAT_mer = seq.count("GAT")*100/float(seq_len-2)
-        GGC_mer = seq.count("GGC")*100/float(seq_len-2)
-        GGG_mer = seq.count("GGG")*100/float(seq_len-2)
-        #TAC_mer = seq.count("TAC")*100/float(seq_len-2)
-        TAG_mer = seq.count("TAG")*100/float(seq_len-2)
-        TCA_mer = seq.count("TCA")*100/float(seq_len-2)
-        # Translating nucleotides to peptide sequences according to frame shift
-        frame_0 = frame_translation(seq, 0, genetic_code=1)
-        stop_count_0 = frame_0.count("*")
-        frame_1 = frame_translation(seq, 1, genetic_code=1)
-        stop_count_1 = frame_1.count("*")
-        frame_2 = frame_translation(seq, 2, genetic_code=1)
-        stop_count_2 = frame_2.count("*")
-        stop = (stop_count_0, stop_count_1, stop_count_2)
-        std_stop = numpy.std(stop)
-        seqRNA = ptU.sub("T",str(seq).strip())
-        seqRNA = seqRNA.upper()
-        seqCDS,start_pos,orf_strand,orf_fullness = FindCDS(seqRNA).longest_orf(strand)
-        '''seqCDS:longest ORF'''
-        seqprot = mRNA_translate(seqCDS)
-        pep_len = len(seqprot) #pep_len = len(seqprot.strip("*"))
-        newseqprot = strinfoAmbiguous.sub("",str(seqprot))
-        '''exclude ambiguous amio acid X, B, Z, J, Y in peptide sequence'''
-        fickett_score = fickett_obj.fickett_value(seqRNA)
-        protparam_obj = ProtParam.ProteinAnalysis(str(newseqprot.strip("*")))
-        if pep_len > 0:
-            isoelectric_point = protein_param(protparam_obj)
-        else:
-            orf_fullness = -1
-            isoelectric_point = 0.0   
-        hexamer = extract_feature_from_seq(seq = seq, stt = start_codons,stp = stop_codons,c_tab=coding,g_tab=noncoding)
-        # print features
-        #print("%s"%first[0], end='\t', file=f_out)
-        print("%d"%seq_len, end='\t', file=f_out)
-        print("%0.2f"%GC(seq), end='\t', file=f_out)
-        print("%.6f"%std_stop, end='\t', file=f_out)
-        cds = cds_len[first[0]]
-        #print("%d"%cds, end='\t', file=f_out)
-        len_perc = float(cds)/seq_len
-        print("%0.2f"%len_perc, end='\t', file=f_out)
-        print("%d"%cds_score[first[0]], end='\t', file=f_out)
-        #print("%s"%str(pep_len), end='\t', file=f_out)
-        print("%s"%str(fickett_score), end='\t', file=f_out)
-        print("%s"%str(isoelectric_point), end='\t', file=f_out)
-        print("%s"%str(orf_fullness), end='\t', file=f_out)
-        print("%s"%str(hexamer), end='\t', file=f_out)
-        print("%0.4f"%ACG_mer, end = "\t", file=f_out)
-        print("%0.4f"%AGC_mer, end = "\t", file=f_out)
-        print("%0.4f"%CAG_mer, end = "\t", file=f_out)
-        print("%0.4f"%CAT_mer, end = "\t", file=f_out)
-        #print("%0.4f"%CCA_mer, end = "\t", file=f_out)
-        print("%0.4f"%CGG_mer, end = "\t", file=f_out)
-        print("%0.4f"%CGT_mer, end = "\t", file=f_out)
-        print("%0.4f"%GAC_mer, end = "\t", file=f_out)
-        print("%0.4f"%GAG_mer, end = "\t", file=f_out)
-        #print("%0.4f"%GAT_mer, end = "\t", file=f_out)
-        print("%0.4f"%GGC_mer, end = "\t", file=f_out)
-        print("%0.4f"%GGG_mer, end = "\t", file=f_out)
-        #print("%0.4f"%TAC_mer, end = "\t", file=f_out)
-        print("%0.4f"%TAG_mer, end = "\t", file=f_out)
-        print("%0.4f"%TCA_mer, end = "\t", file=f_out)
-        print("%d"%0, file=f_out)
-    f_in.close()
+        print("%0.4f"%TGG_mer, file=f_out)
     f_out.close()
+    f_in.close()
 
 #############################################################
 def main():
@@ -491,40 +363,47 @@ def main():
     pc_fasta = ''
     outputfile = ''
     try:
-        opts, args = getopt.getopt(sys.argv[1:],"h:l:p:r:o:",["Help","lncFASTA=","pcFASTA=","o=outModel"])
+        opts, args = getopt.getopt(sys.argv[1:],"h:i:m:r:o:",["Help","ifile=","model","hexamerfile=","ofile="])
     except getopt.GetoptError:
-        print("Usage: %s  -l lncTranscripts.fa -p pcTranscripts.fa -r hexamer.csv -o output.pkl" % sys.argv[0])
+        print("Usage: %s  -i *.fa -m *.pkl -r *.csv -o *.txt" % sys.argv[0])
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print("createmodel.py -l/--lncFASTA <FASTA> -p/--pcFASTA <FASTA> -r/--hexamerfile <tsv> -o/--outmodel <pkl>")
-            print("Example: createmodel.py -l human_lnc.fa -p human_pc.fa -r human_hexamer.csv -o human_model.pkl")
+            print("prelnc_plant.py -l/--lncFASTA <FASTA> -m/--model<pkl> -r/--hexamerfile <tsv> -o/--ofile <outputfile>")
+            print("Example: prelnc_plant.py -i transcripts.fa -m ath.pkl -r ath_hexamer.csv -o prediction.txt")
             sys.exit()
-        elif opt in ("-l", "--lncFASTA"):
-            lnc_fasta = arg
-        elif opt in ("-p", "--pcFASTA"):
-            pc_fasta = arg
+        elif opt in ("-i", "--ifile"):
+            inputfile = arg
+        elif opt in ("-m", "--model"):
+            model = arg
         elif opt in ("-r", "--hexamerfile"):
             hexamer_dat = arg
-        elif opt in ("-o", "--outmodel"):
+        elif opt in ("-o", "--ofile"):
             outputfile = arg
+
 
 ################################### main body #####################################
     start_time = time.time()
     # get features
-    get_feature(lnc_fasta,pc_fasta,hexamer_dat,outputfile)
-    # create model
-    fout= open(outputfile, "w")
-    data= numpy.loadtxt(outputfile+".feature.txt")
-    x=data[:,0:21]
-    y=data[:,-1]
-    x = smf.add_constant(x,prepend = False,has_constant='add')
-    model = smf.Logit(y,x).fit()
-    with open(outputfile, 'wb') as f:
-        pickle.dump(model, f)
-    f.close()
-    sys.stderr.write("\n[PreLnc]Model built cost time: %ds\n"%(time.time()-start_time))
+    get_feature(inputfile,hexamer_dat,outputfile)
+    # prediction
+    with open(model, 'rb') as m:
+        load_model = pickle.load(m)
+    data= numpy.loadtxt(outputfile+".feature",dtype=numpy.float32)
+    data = smf.add_constant(data,prepend = False,has_constant='add')
+    predict_result= load_model.predict(data)
 
+    ftmp= open("TMP.txt", "w")
+    numpy.savetxt(ftmp, predict_result, fmt='%0.8f')
+    m.close()
+    ftmp.close()
+
+    cl="paste " + outputfile+".feature TMP.txt > " + outputfile
+    sys.stderr.write(cl)
+    os.system(cl)
+    os.system("rm TMP.txt")
+    os.system("rm "+outputfile+".feature")
+    sys.stderr.write("\n[PreLnc] Prediction cost time: %ds\n"%(time.time()-start_time))
 
 if __name__ == '__main__':
     main()
