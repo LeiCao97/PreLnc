@@ -39,7 +39,7 @@ If you need to model another species, you need to create an hexamer file through
 Use the same script as the animals, the script files used are 'prelnc\_plant.py' and 'createmodel\_plant.py'.
 
 --- 
-###Output File 
+### Output File 
 The main output file contains the feature information and prediction results of the transcript.  
 ***Human and animals (columns describe):***  
 1. Sequence length  
@@ -79,11 +79,11 @@ The main output file contains the feature information and prediction results of 
 11. The possibility of lncRNA:1-lncRNA
 
 ---
-###Statement: 
+### Statement: 
 The feature extraction method in the scripts mainly comes from from CPAT[1], CPC2[2] and LncRscan-SVM[3].
 
 ---
-###References:
+### References:  
 [1] Wang L , Park H J , Dasari S , et al. CPAT: Coding-Potential Assessment Tool using an alignment-free logistic regression model[J]. Nucleic Acids Research, 2013, 41(6):e74-e74.  
 [2] Kang Y J , Yang D C , Kong L , et al. CPC2: a fast and accurate coding potential calculator based on sequence intrinsic features[J]. Nucleic Acids Research, 2017.  
 [3] Sun L , Liu H , Zhang L , et al. lncRScan-SVM: A Tool for Predicting Long Non-Coding RNAs Using Support Vector Machine[J]. PLOS ONE, 2015, 10.
