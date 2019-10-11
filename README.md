@@ -80,7 +80,7 @@ The main output file contains the feature information and prediction results of 
 
 ---
 ### Statement: 
-The feature extraction method in the scripts mainly comes from from CPAT[1], CPC2[2] and LncRscan-SVM[3].
+The feature extraction method in the scripts mainly comes from from CPAT[1], CPC2[2] and LncRScan-SVM[3].
 
 ---
 ### References:  
