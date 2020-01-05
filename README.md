@@ -12,11 +12,11 @@ PreLnc is mainly used to distinguish long non-coding transcripts from protein-co
 ### Start
 1. Clone this repository to use this tool:  
 `git clone https://github.com/LeiCao97/PreLnc.git`
-2. Import python package:
+2. Import python package:  
 `pip install biopython`
 `pip install statsmodels`
 `cp cpmodules /usr/lib/dist-packages/`
-3. Configure txCdsPredict paths by modifying ~/.bashrc:
+3. Configure txCdsPredict paths by modifying ~/.bashrc:   
 `export PATH=$PATH:'yourpath'/Prelnc/bin/`
 
 --- 
