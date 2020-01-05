@@ -27,13 +27,13 @@ PreLnc currently provides models and documents for 6 species, as well as support
 #### Example  
 Predicting lncRNAs of plants and animals requires different script files (see **Introduction**).  
 ***For human and animals:***  
-`prelnc.py -i transcripts.fa -m human.pkl -r human_hexamer.csv -o prediction.txt`
+`python prelnc.py -i transcripts.fa -m human_model.pkl -r human_hexamer.tsv -o prediction.txt`
 
 If you need to model another species, you need to create an hexamer file through a script in CPAT called "make\_hexamer\_tab.py".  
 1. prepare the CDS sequence and long non-coding transcripts. All files are in fasta format.   
-`make_hexamer_tab.py -c Human_coding_transcripts_CDS.fa   -n Human_noncoding_transcripts_RNA.fa >Human_Hexamer.tsv`
+`python make_hexamer_tab.py -c Human_coding_transcripts_CDS.fa   -n Human_noncoding_transcripts_RNA.fa >Human_Hexamer.tsv`
 2. Input high-confident long non-coding transcripts and protein-coding transcripts to build the model (pkl format).
-`createmodel.py -l human_lnc.fa -p human_pc.fa -r human_hexamer.csv -o human_model.pkl`
+`python createmodel.py -l human_lnc.fa -p human_pc.fa -r human_hexamer.tsv -o human_model.pkl`
 
 ***For plants:***
 Use the same script as the animals, the script files used are 'prelnc\_plant.py' and 'createmodel\_plant.py'.
