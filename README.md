@@ -15,7 +15,7 @@ PreLnc is mainly used to distinguish long non-coding transcripts from protein-co
 2. Import python package:  
 `pip install biopython`   
 `pip install statsmodels`  
-`cp cpmodules /usr/lib/dist-packages/`.  
+`cp cpmodules /usr/lib/dist-packages/`   
 3. Configure txCdsPredict paths by modifying ~/.bashrc:   
 `export PATH=$PATH:'yourpath'/Prelnc/bin/`   
 
