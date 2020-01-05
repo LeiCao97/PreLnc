@@ -2,16 +2,22 @@
 PreLnc is mainly used to distinguish long non-coding transcripts from protein-coding transcripts, supporting multiple species of plants and animals.  
 
 ---
-### Start
-Clone this repository to use this tool:  
-`git clone https://github.com/LeiCao97/PreLnc.git`  
-
----
 ### Requirements  
 1. Python(>2.7) 
     * [Biopython](https://biopython.org)   
     * [StatsModel](http://www.statsmodels.org/stable/index.html)  
-2. txCdsPredict  
+2. txCdsPredict   
+
+---
+### Start
+1.Clone this repository to use this tool:  
+`git clone https://github.com/LeiCao97/PreLnc.git`
+2.Import python package:
+`pip install biopython`
+`pip install statsmodels`
+`cp cpmodules /usr/lib/dist-packages/`
+3.Configure txCdsPredict paths by modifying ~/.bashrc:
+`export PATH=$PATH:'yourpath'/Prelnc/bin/`
 
 --- 
 ### Usage
