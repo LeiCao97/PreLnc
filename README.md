@@ -88,6 +88,7 @@ The main output file contains the feature information and prediction results of 
 ### Statement: 
 The feature extraction method in the scripts mainly comes from from CPAT[1], CPC2[2] and LncRScan-SVM[3].  
 The cpmodule package is mainly derived from CPAT and used to calculate Hexamer score.   
+The Compiled 'txCdsPredict' is derived from lncRScan-SVM.  
 
 ---
 ### References:  
