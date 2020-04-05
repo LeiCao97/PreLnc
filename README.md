@@ -5,7 +5,7 @@ PreLnc is mainly used to distinguish long non-coding transcripts from protein-co
 ### Requirements (Ubuntu 16.04.6) 
 1. Python(2.7) 
     * [Biopython](https://biopython.org)   
-    * [StatsModel](http://www.statsmodels.org/stable/index.html)  
+    * [sklearn](https://scikit-learn.org)  
 2. txCdsPredict   
 
 ---
@@ -36,7 +36,7 @@ PreLnc currently provides models and documents for 6 species, as well as support
 #### Example  
 Predicting lncRNAs of plants and animals requires different script files (see **Introduction**).  
 ***For human and animals:***  
-`cd PreLnc-master/example`
+`cd PreLnc-master/example`   
 `python ../bin/prelnc.py -i example.fa -m ../models/human_model.pkl -r ../models/human_hexamer.tsv -o example.txt`
 
 If you need to model another species, you need to create an hexamer file through a script in CPAT called "make\_hexamer\_tab.py".  
