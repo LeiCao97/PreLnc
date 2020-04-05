@@ -15,7 +15,7 @@ import time
 from cpmodule  import orf
 from cpmodule  import FrameKmer
 import sys, getopt
-import statsmodels.api as smf
+from sklearn.ensemble import RandomForestClassifier
 import pickle
 
 ######################### Functions #########################
@@ -296,18 +296,18 @@ def get_feature(FA,heDAT,outFILE):
         AGC_mer = seq.count("AGC")*100/float(seq_len-2)
         CAG_mer = seq.count("CAG")*100/float(seq_len-2)
         CAT_mer = seq.count("CAT")*100/float(seq_len-2)
-        #CCA_mer = seq.count("CCA")*100/float(seq_len-2)
+        CCA_mer = seq.count("CCA")*100/float(seq_len-2)
         CGG_mer = seq.count("CGG")*100/float(seq_len-2)
         CGT_mer = seq.count("CGT")*100/float(seq_len-2)
         GAC_mer = seq.count("GAC")*100/float(seq_len-2)
         GAG_mer = seq.count("GAG")*100/float(seq_len-2)
-        #GAT_mer = seq.count("GAT")*100/float(seq_len-2)
+        GAT_mer = seq.count("GAT")*100/float(seq_len-2)
         GGC_mer = seq.count("GGC")*100/float(seq_len-2)
         GGG_mer = seq.count("GGG")*100/float(seq_len-2)
-        #TAC_mer = seq.count("TAC")*100/float(seq_len-2)
+        TAC_mer = seq.count("TAC")*100/float(seq_len-2)
         TAG_mer = seq.count("TAG")*100/float(seq_len-2)
         TCA_mer = seq.count("TCA")*100/float(seq_len-2)
-        # Translating nucleotides to peptide sequences according to frame shift
+        #Translating nucleotides to peptide sequences according to frame shift
         frame_0 = frame_translation(seq, 0, genetic_code=1)
         stop_count_0 = frame_0.count("*")
         frame_1 = frame_translation(seq, 1, genetic_code=1)
@@ -334,34 +334,28 @@ def get_feature(FA,heDAT,outFILE):
         hexamer = extract_feature_from_seq(seq = seq, stt = start_codons,stp = stop_codons,c_tab=coding,g_tab=noncoding)
         # print features
         #print("%s"%first[0], end='\t', file=f_out)
-        print("%d"%seq_len, end='\t', file=f_out)
-        print("%0.2f"%GC(seq), end='\t', file=f_out)
-        print("%.6f"%std_stop, end='\t', file=f_out)
         cds = cds_len[first[0]]
-        #print("%d"%cds, end='\t', file=f_out)
         len_perc = float(cds)/seq_len
         print("%0.2f"%len_perc, end='\t', file=f_out)
-        print("%d"%cds_score[first[0]], end='\t', file=f_out)
-        #print("%s"%str(pep_len), end='\t', file=f_out)
         print("%s"%str(fickett_score), end='\t', file=f_out)
-        print("%s"%str(isoelectric_point), end='\t', file=f_out)
-        print("%s"%str(orf_fullness), end='\t', file=f_out)
         print("%s"%str(hexamer), end='\t', file=f_out)
-        print("%0.4f"%ACG_mer, end = "\t", file=f_out)
-        print("%0.4f"%AGC_mer, end = "\t", file=f_out)
-        print("%0.4f"%CAG_mer, end = "\t", file=f_out)
-        print("%0.4f"%CAT_mer, end = "\t", file=f_out)
-        #print("%0.4f"%CCA_mer, end = "\t", file=f_out)
+        print("%d"%cds_score[first[0]], end='\t', file=f_out)
         print("%0.4f"%CGG_mer, end = "\t", file=f_out)
-        print("%0.4f"%CGT_mer, end = "\t", file=f_out)
-        print("%0.4f"%GAC_mer, end = "\t", file=f_out)
-        print("%0.4f"%GAG_mer, end = "\t", file=f_out)
-        #print("%0.4f"%GAT_mer, end = "\t", file=f_out)
-        print("%0.4f"%GGC_mer, end = "\t", file=f_out)
-        print("%0.4f"%GGG_mer, end = "\t", file=f_out)
-        #print("%0.4f"%TAC_mer, end = "\t", file=f_out)
         print("%0.4f"%TAG_mer, end = "\t", file=f_out)
-        print("%0.4f"%TCA_mer, file=f_out)
+        print("%0.2f"%GC(seq), end='\t', file=f_out)
+        print("%.6f"%std_stop, end='\t', file=f_out)
+        print("%s"%str(isoelectric_point), end='\t', file=f_out)
+        print("%0.4f"%ACG_mer, end = "\t", file=f_out)
+        print("%0.4f"%GGC_mer, end = "\t", file=f_out)
+        print("%d"%seq_len, end='\t', file=f_out)
+        print("%0.4f"%CGT_mer, end = "\t", file=f_out)
+        print("%0.4f"%AGC_mer, end = "\t", file=f_out)
+        print("%0.4f"%GAC_mer, end = "\t", file=f_out)
+        print("%0.4f"%GGG_mer, end = "\t", file=f_out)
+        print("%0.4f"%TCA_mer, end = "\t", file=f_out)
+        print("%0.4f"%CAT_mer, end = "\t", file=f_out)
+        print("%s"%str(orf_fullness), end='\t', file=f_out)
+        print("%0.4f"%CAG_mer,file=f_out)
     f_out.close()
     f_in.close()
 
@@ -393,13 +387,14 @@ def main():
 ################################### main body #####################################
     start_time = time.time()
     # get features
+    sys.stderr.write("\n[PreLnc]start to extract features\n")
     get_feature(inputfile,hexamer_dat,outputfile)
+    sys.stderr.write("\n[PreLnc]start to predict\n")
     # prediction
     with open(model, 'rb') as m:
         load_model = pickle.load(m)
     data= numpy.loadtxt(outputfile+".feature",dtype=numpy.float32)
-    data = smf.add_constant(data,prepend = False,has_constant='add')
-    predict_result= load_model.predict(data)
+    predict_result= load_model.predict_proba(data)[:,1]
 
     ftmp= open("TMP.txt", "w")
     numpy.savetxt(ftmp, predict_result, fmt='%0.8f')
