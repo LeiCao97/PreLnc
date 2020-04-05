@@ -2,22 +2,25 @@
 PreLnc is mainly used to distinguish long non-coding transcripts from protein-coding transcripts, supporting multiple species of plants and animals.  
 
 ---
-### Requirements  
-1. Python(>2.7) 
+### Requirements (Ubuntu 16.04.6) 
+1. Python(2.7) 
     * [Biopython](https://biopython.org)   
     * [StatsModel](http://www.statsmodels.org/stable/index.html)  
 2. txCdsPredict   
 
 ---
-### Start
+### Install
 1. Clone this repository to use this tool:  
 `git clone https://github.com/LeiCao97/PreLnc.git`  
 2. Import python package:  
 `pip install biopython`   
-`pip install statsmodels`  
-`cp cpmodules /usr/lib/dist-packages/`   
-3. Configure txCdsPredict paths by modifying ~/.bashrc:   
-`export PATH=$PATH:'yourpath'/Prelnc/bin/`   
+`pip install sklearn`    
+3. Configure txCdsPredict paths by modifying ~/.bashrc:  
+`vi ~/.bashrc`   
+Please add:  
+ `export PATH=$PATH:'yourpath'/Prelnc/bin/`  
+4. Update profile  
+`source ~/.bashrc` 
 
 --- 
 ### Usage
@@ -33,7 +36,8 @@ PreLnc currently provides models and documents for 6 species, as well as support
 #### Example  
 Predicting lncRNAs of plants and animals requires different script files (see **Introduction**).  
 ***For human and animals:***  
-`python prelnc.py -i transcripts.fa -m human_model.pkl -r human_hexamer.tsv -o prediction.txt`
+`cd PreLnc-master/example`
+`python ../bin/prelnc.py -i example.fa -m ../models/human_model.pkl -r ../models/human_hexamer.tsv -o example.txt`
 
 If you need to model another species, you need to create an hexamer file through a script in CPAT called "make\_hexamer\_tab.py".  
 1. prepare the CDS sequence and long non-coding transcripts. All files are in fasta format.   
@@ -48,41 +52,63 @@ Use the same script as the animals, the script files used are 'prelnc\_plant.py'
 ### Output File 
 The main output file contains the feature information and prediction results of the transcript.  
 ***Human and animals (columns describe):***  
-1. Sequence length  
-2. GC content  
-3. Standard deviation of stop codon counts    
-4. CDS percentage   
-5. CDS score of txCdsPredict prediction  
-6. Fickett score  
-7. Isoelectric point    
-8. Open reading frame integrity  
-9. Hexamer score  
+1. CDS percentage  
+2. Fickett score  
+3. Hexamer score.  
+4. CDS score of txCdsPredict prediction  
+5. CGG   
+6. TAG   
+7. GC content  
+8. Standard deviation of stop codon counts   
+9. Isoelectric point   
 10. ACG  
-11. AGC  
-12. CAG  
-13. CAT    
-14. CGG   
-15. CGT  
-16. GAC  
-17. GAG    
-18. GGC  
-19. GGG  
-20. TAG  
-21. TCA   
-22. The possibility of lncRNA:1-lncRNA 
+11. GGC  
+12. Sequence length  
+13. CGT  
+14. AGC  
+15. GAC  
+16. GGG  
+17. TCA  
+18. CAT  
+19. Open reading frame integrity   
+20. CAG   
+21. The possibility of lncRNA:1-lncRNA   
 
 ***Plants (columns describe):***  
 1. Sequence length  
-2. GC content  
-3. Standard deviation of stop codon counts    
-4. CDS percentage   
-5. CDS score of txCdsPredict prediction  
-6. Fickett score     
-7. Open reading frame integrity  
-8. Hexamer score  
-9. CTA  
-10. TGG   
-11. The possibility of lncRNA:1-lncRNA
+2. Hexamer score  
+3. CDS score of txCdsPredict prediction   
+4. Standard deviation of stop codon counts   
+5. Fickett score   
+6. Isoelectric point          
+7. GGG   
+8. TAG   
+9. CGA   
+10. CAA   
+11. CDS percentage   
+12. GAT   
+13. ACT   
+14. GC content    
+15. ATC   
+16. Open reading frame integrity   
+17. AAA   
+18. AAC   
+19. CTA   
+20. AGG   
+21. GAG   
+22. AAT   
+23. GAC   
+24. CAG   
+25. GGA   
+26. CAT   
+27. AGC   
+28. TAT   
+29. TAA   
+30. ACC   
+31. GTA   
+32. ATG   
+33. TTA       
+34. The possibility of lncRNA:1-lncRNA   
 
 ---
 ### Statement: 
