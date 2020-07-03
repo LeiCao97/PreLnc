@@ -1,4 +1,4 @@
-## A novel and accurate tool for predicting lncRNAs based on multiple features. 
+## An accurate tool for predicting lncRNAs based on multiple features. 
 PreLnc is mainly used to distinguish long non-coding transcripts from protein-coding transcripts, supporting multiple species of plants and animals.  
 
 ---
