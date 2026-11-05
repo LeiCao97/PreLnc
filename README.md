@@ -1,128 +1,261 @@
-## An accurate tool for predicting lncRNAs based on multiple features. [[Paper]](https://www.mdpi.com/2073-4425/11/9/981/htm)
-PreLnc is mainly used to distinguish long non-coding transcripts from protein-coding transcripts, supporting multiple species of plants and animals.   
+# PreLnc 2.0
+
+PreLnc distinguishes long non-coding transcripts from protein-coding transcripts for several plant and animal species, using a random-forest model over sequence-derived features (Fickett score, hexamer ratio, ORF integrity, CDS prediction score, GC content and trinucleotide frequencies).
+
+Original method: [Genes 2020, 11(9), 981](https://www.mdpi.com/2073-4425/11/9/981/htm).
+
+Version 2.0 is a rewrite of the published `PreLnc-master` code: it is a real installable package with a single command-line interface, it no longer needs the Linux-only `txCdsPredict` binary, it writes proper CSV/TSV tables without overwriting your files, and it reports progress while it runs. Feature computation and the bundled models are unchanged, so `prediction_score` values are identical to the published version.
 
 ---
-### Requirements (Ubuntu 16.04.6) 
-1. Python(2.7) 
-    * [Biopython](https://biopython.org)   
-    * [sklearn](https://scikit-learn.org)  
-2. txCdsPredict   
+
+## Changes since PreLnc-master
+
+`PreLnc-master` was a set of Python 2 scripts; 2.0 is one Python 3 package. What that means in practice:
+
+| Area | PreLnc-master | PreLnc 2.0 |
+|---|---|---|
+| Python | 2.7 only (`from __future__ import print_function`, `import Bio.Alphabet`) | 3.7+ (tests run on 3.7 and 3.8) |
+| Install | `git clone`, `pip install biopython sklearn`, then edit `~/.bashrc` so `txCdsPredict` is on `PATH` | `python -m pip install .`; no manual `PATH` editing |
+| Commands | 4 scripts inside `bin/`, pick one by species: `prelnc.py` / `prelnc_plant.py` / `createmodel.py` / `createmodel_plant.py` | 3 console commands: `prelnc`, `prelnc-train`, `prelnc-hexamer` |
+| Species | encoded in the script name | `--species human\|mouse\|cow\|ath\|osa\|zma` (or `--type animal\|plant` with your own model) |
+| Model / hexamer paths | passed by hand with `-m` / `-r`, relative to the checkout | bundled in the package and resolved from `--species`; `-m` / `-r` only to override |
+| CDS prediction | required the compiled `txCdsPredict` (Linux x86-64 ELF) on `PATH` | pure Python implementation by default, no external binary; the binary is still usable via `PRELNC_USE_EXTERNAL_TXCDS=1` |
+| Output | one tab-separated table with no header and no transcript id, assembled by `paste`-ing a features file with the score column | two header-ed CSV/TSV tables: predictions (`transcript_id`, `prediction_score`, `prediction`) and features (`transcript_id` + one column per feature) |
+| Overwriting | silently replaced the target file | writes `out_1.tsv`, `out_2.tsv`, … instead; `--force` to overwrite; companion files renamed with the same stem |
+| Failed runs | scratch files (`<output>.feature`, a fixed-name `TMP.txt` in the working directory) could be left behind; assembly shelled out to `paste`/`rm`, so it was Unix-only | written to a temporary sibling and moved into place only on success, no shell calls |
+| Feedback | two "start to ..." lines on stderr, then total cost | per-stage progress (percent, done/total, ETA) on stderr and an end-of-run summary listing counts and every file written |
+| Training | `createmodel.py` printed a pkl; feature order implied | `prelnc-train` writes `.pkl` + `.feature.tsv` + `.report.tsv`, and reports training accuracy |
+| Hexamer table | `bin/make_hexamer_tab.py`, an unmodified copy of the CPAT script that needs CPAT's `cpmodule` on `sys.path` and dies with `NameError` on empty input | `prelnc-hexamer`, same algorithm, explicit error instead of a traceback |
+| Code duplication | `prelnc.py` / `prelnc_plant.py` and `createmodel.py` / `createmodel_plant.py` were near-identical, and `bin/cpmodule/` duplicated the feature primitives | one code path in `prelnc/`; CPAT/CPC2 primitives kept verbatim under `prelnc/legacy/` |
+| Repository size | 45 MB, including a second copy of `models/` and an unused `modelFor8CPUs/` bundle | 9.6 MB, one copy of each bundled model |
+| Tests | none | 27 unittest cases: hexamer parity with the original script, a full prediction run on `example/example.fa`, overwrite/delimiter handling, progress formatting |
+| Version | unversioned | `2.0.0`, `prelnc --version` |
+
+What did **not** change: the feature definitions, the hexamer ratio computation, and the six bundled random-forest models. On `example/example.fa` and the first 100 *O. sativa* transcripts, `prediction_score` and all feature values are bit-for-bit identical to the published output.
+
+Output-format changes are the one thing that can break a downstream script:
+`<output>.features.tsv` is now `<stem>.features.tsv`, the prediction table gained a `prediction` column, and existing files are renamed instead of overwritten. Everything else is additive.
 
 ---
-### Install
-1. Clone this repository to use this tool:  
-`git clone https://github.com/LeiCao97/PreLnc.git`  
-2. Import python package:  
-`pip install biopython`   
-`pip install sklearn`    
-3. Configure txCdsPredict paths by modifying ~/.bashrc:  
-`vi ~/.bashrc`   
-Please add:  
- `export PATH=$PATH:'yourpath'/Prelnc/bin/`  
-4. Update profile  
-`source ~/.bashrc` 
 
---- 
-### Usage
-PreLnc currently provides models and documents for 6 species, as well as support for building models of the species you need. 
-#### Introduction  
-1. Animals--Human, Mouse, Cow
-	- prelnc.py : predicting long noncoding transcripts through 21 features.  
-	- createmodel.py : create prediction model. 
-2. Plants--Arabidopsis thaliana, Oryza sativa, Zea mays  
-	- prelnc\_plant.py : predicting long noncoding transcripts through 10 features.
-	- createmodel\_plant.py :  create prediction model.
+## Install
 
-#### Example  
-Predicting lncRNAs of plants and animals requires different script files (see **Introduction**).  
-***For human and animals:***  
-`cd PreLnc-master/example`   
-`python ../bin/prelnc.py -i example.fa -m ../models/human_model.pkl -r ../models/human_hexamer.tsv -o example.txt`
+```bash
+python -m pip install .
+```
 
-If you need to model another species, you need to create an hexamer file through a script in CPAT called "make\_hexamer\_tab.py".  
-1. prepare the CDS sequence and long non-coding transcripts. All files are in fasta format.   
-`python make_hexamer_tab.py -c Human_coding_transcripts_CDS.fa   -n Human_noncoding_transcripts_RNA.fa >Human_Hexamer.tsv`
-2. Input high-confident long non-coding transcripts and protein-coding transcripts to build the model (pkl format).
-`python createmodel.py -l human_lnc.fa -p human_pc.fa -r human_hexamer.tsv -o human_model.pkl`
+Use `--user` if the environment is not writable:
 
-***For plants:***
-Use the same script as the animals, the script files used are 'prelnc\_plant.py' and 'createmodel\_plant.py'.
+```bash
+python -m pip install --user .
+```
 
---- 
-### Output File 
-The main output file contains the feature information and prediction results of the transcript.  
-***Human and animals (columns describe):***  
-1. CDS percentage  
-2. Fickett score  
-3. Hexamer score.  
-4. CDS score of txCdsPredict prediction  
-5. CGG   
-6. TAG   
-7. GC content  
-8. Standard deviation of stop codon counts   
-9. Isoelectric point   
-10. ACG  
-11. GGC  
-12. Sequence length  
-13. CGT  
-14. AGC  
-15. GAC  
-16. GGG  
-17. TCA  
-18. CAT  
-19. Open reading frame integrity   
-20. CAG   
-21. The possibility of lncRNA:1-lncRNA   
+This installs three commands:
 
-***Plants (columns describe):***  
-1. Sequence length  
-2. Hexamer score  
-3. CDS score of txCdsPredict prediction   
-4. Standard deviation of stop codon counts   
-5. Fickett score   
-6. Isoelectric point          
-7. GGG   
-8. TAG   
-9. CGA   
-10. CAA   
-11. CDS percentage   
-12. GAT   
-13. ACT   
-14. GC content    
-15. ATC   
-16. Open reading frame integrity   
-17. AAA   
-18. AAC   
-19. CTA   
-20. AGG   
-21. GAG   
-22. AAT   
-23. GAC   
-24. CAG   
-25. GGA   
-26. CAT   
-27. AGC   
-28. TAT   
-29. TAA   
-30. ACC   
-31. GTA   
-32. ATG   
-33. TTA       
-34. The possibility of lncRNA:1-lncRNA   
+| Command | Purpose |
+|---|---|
+| `prelnc` | predict lncRNA probability |
+| `prelnc-train` | train a model for a new species |
+| `prelnc-hexamer` | build a hexamer frequency table |
 
----
-### Statement: 
-The feature extraction method in the scripts mainly comes from from CPAT[1], CPC2[2] and LncRScan-SVM[3].  
-The cpmodule package is mainly derived from CPAT and used to calculate Hexamer score.   
-The Compiled 'txCdsPredict' is derived from lncRScan-SVM.  
+Dependencies (`biopython`, `numpy`, `scikit-learn`) are installed automatically.
 
----
-### References:  
-[1] Wang L , Park H J , Dasari S , et al. CPAT: Coding-Potential Assessment Tool using an alignment-free logistic regression model[J]. Nucleic Acids Research, 2013, 41(6):e74-e74.  
-[2] Kang Y J , Yang D C , Kong L , et al. CPC2: a fast and accurate coding potential calculator based on sequence intrinsic features[J]. Nucleic Acids Research, 2017.  
-[3] Sun L , Liu H , Zhang L , et al. lncRScan-SVM: A Tool for Predicting Long Non-Coding RNAs Using Support Vector Machine[J]. PLOS ONE, 2015, 10.
+## Quick start
 
+```bash
+prelnc -i example/example.fa --species human -o example.tsv
+```
 
+`-o` is optional. Without it the result goes to the current directory as
+`./prelnc_human_prediction_<timestamp>.tsv`, so a run never clobbers a file you
+already have.
 
+Output:
 
+- `example.tsv` — `transcript_id`, `prediction_score` (probability of being non-coding) and `prediction` (`lncRNA` above 0.5, otherwise `coding`)
+- `example.features.tsv` — `transcript_id` plus one column per extracted feature, for inspection
 
+From a source checkout without installing, use `python -m prelnc`; the same
+entry point accepts `predict`, `train` and `hexamer` subcommands:
+
+```bash
+python -m prelnc train -l lnc.fa -p coding.fa --species human -o human_model.pkl
+```
+
+## Output files
+
+### Format
+
+The extension decides the delimiter, checked before the run starts:
+
+| Extension | Delimiter |
+|---|---|
+| `.csv` | comma |
+| `.tsv`, `.tab`, `.txt` | tab |
+
+Any other extension is rejected with an error. All tables are UTF-8 with a
+header row.
+
+### Existing files are never overwritten
+
+If the target exists, a numbered copy is written instead (`out.tsv` →
+`out_1.tsv`, `out_2.tsv`, …) and the actual path is printed. Pass `--force` to
+overwrite on purpose. A companion file (feature table, report) is renamed
+together with its result file so the pair always keeps the same stem.
+
+Files are written to a temporary sibling and moved into place only after the run
+succeeds, so an interrupted run leaves no half-written table behind.
+
+## Progress and summary
+
+Every command reports what it is doing on stderr. On a terminal the line is
+refreshed in place; when stderr is redirected it prints one line per 5%, which
+keeps log files readable:
+
+```
+[PreLnc] Predict: transcripts.fa (5000 sequences)
+[PreLnc] Predict CDS [ 45%] 2250/5000 items · elapsed 1m38s · eta 2m00s
+```
+
+At the end a summary lists how many sequences were processed, how many were
+called lncRNA, the elapsed time, and exactly which files were written:
+
+```
+[PreLnc] Prediction finished
+[PreLnc] Input       : transcripts.fa (5000 sequences)
+[PreLnc] lncRNA      : 2140 (42.8%)
+[PreLnc] coding      : 2860 (57.2%)
+[PreLnc] Elapsed     : 3m12s
+[PreLnc] Predictions : ./prelnc_human_prediction_20261105_132500.tsv (5000 rows x 3 columns)
+[PreLnc] Features    : ./prelnc_human_prediction_20261105_132500.features.tsv (5000 rows x 21 columns)
+```
+
+`-q/--quiet` hides the progress lines; the summary is still printed.
+
+## Built-in species
+
+| `--species` | Feature set |
+|---|---|
+| `human`, `mouse`, `cow` | animal (20 features) |
+| `ath`, `osa`, `zma` | plant (33 features) |
+
+`--species` resolves the feature set, the bundled model and the bundled hexamer table automatically. Pass `-m/--model` or `-r/--hexamer` only to override them.
+
+### Custom model or species
+
+```bash
+prelnc -i transcripts.fa --type animal -m my_model.pkl -r my_hexamer.tsv -o out.txt
+```
+
+`--type` selects the feature set (`animal` or `plant`) when you supply your own model.
+
+## Training a model
+
+```bash
+prelnc-train -l lnc.fa -p coding.fa --species human -o human_model.pkl
+```
+
+Writes three files, all sharing the same stem (rename on conflict applies to the
+whole set):
+
+| File | Content |
+|---|---|
+| `human_model.pkl` | the trained model (binary, not a table) |
+| `human_model.feature.tsv` | labelled feature matrix: `transcript_id`, features, `label` (1 = lncRNA, 0 = coding) |
+| `human_model.report.tsv` | key/value training report: sample counts, feature count, tree count, training accuracy, versions |
+
+The summary printed at the end includes the training accuracy; note that it is
+measured on the training set, so it is a sanity check rather than a
+generalisation estimate.
+
+## Building a hexamer table for a new species
+
+The hexamer table is the coding vs non-coding 6-mer frequency ratio table, and it is species specific.
+
+```bash
+prelnc-hexamer -c coding_cds.fa -n noncoding.fa -o my_hexamer.tsv
+```
+
+- `-c` must be **CDS only** (start codon to stop codon, no UTR)
+- `-n` is the non-coding transcript set
+- omit `-o` to write the table to stdout, as the original `make_hexamer_tab.py` did
+- `-o` accepts `.tsv` or `.csv`, and refuses to overwrite an existing table unless `--force` is given
+
+Then train:
+
+```bash
+prelnc-train -l lnc.fa -p coding_cds.fa --type animal -r my_hexamer.tsv -o my_model.pkl
+```
+
+## Column reference
+
+Prediction table (`-o`):
+
+```
+transcript_id	prediction_score	prediction
+ENST00000658521.1	1.00000000	lncRNA
+```
+
+- `prediction_score` — probability that the transcript is non-coding
+- `prediction` — `lncRNA` when the score is >= 0.5, otherwise `coding`
+
+Feature table (`<stem>.features.tsv`) — `transcript_id` plus one column per
+feature, in the order defined by the selected feature set (`prelnc/config.py`).
+The id column is included so rows can be joined back to the result table.
+
+## CDS prediction backend
+
+By default `prelnc` uses a pure Python implementation of `txCdsPredict -anyStart`, so it runs on any platform with no external binary.
+
+The bundled C++ binary was Linux x86-64 only and is no longer shipped. To use it instead:
+
+```bash
+export PRELNC_USE_EXTERNAL_TXCDS=1
+# txCdsPredict must be on PATH
+```
+
+Note that the Python implementation is a re-implementation: scores are close but not guaranteed identical to the C++ original. Use the external binary if you need to reproduce published numbers exactly.
+
+## Project layout
+
+```text
+prelnc/
+  cli.py              command-line entry points
+  config.py           species profiles and feature sets (single source of truth)
+  external.py         CDS prediction (Python implementation + optional binary)
+  feature_extractors.py
+  hexamer.py          hexamer table construction
+  io_utils.py         FASTA/table read-write helpers
+  model_ops.py        model load / predict / train
+  outputs.py          output path resolution, overwrite protection, atomic writers
+  pipelines.py        prediction and training workflows
+  progress.py         progress bars and end-of-run summaries
+  legacy/             Fickett, ORF and k-mer primitives inherited from CPAT/CPC2
+  data/models/        bundled models and hexamer tables
+example/              example input
+tests/                unit tests and fixtures
+```
+
+## Tests
+
+```bash
+python -m unittest discover -s tests
+```
+
+Covers hexamer table construction against a reference output from the original
+`make_hexamer_tab.py`, full prediction runs on `example/example.fa`, overwrite
+protection and delimiter handling, progress/summary formatting, and version
+consistency.
+
+## Notes and limitations
+
+- The bundled `.pkl` models were trained with an old scikit-learn. `pyproject.toml` pins `numpy<2` and `scikit-learn<1.4` so they remain loadable; retraining is recommended for long-term use.
+- `pip install .` needs setuptools 61+ (or network access, so pip can build in an isolated environment). On an offline machine with an old toolchain, upgrade pip/setuptools first.
+- Requires Python 3.7+.
+- `prediction_score` values are unchanged from `PreLnc-master` for the same input and models (verified on `example/example.fa` and 100 *O. sativa* transcripts). What is new in 2.0 is the file naming (`<stem>.features.tsv` instead of `<output>.features.tsv`), the extra `prediction` column, and the `transcript_id` column in the feature table.
+- The `hexamer` column of the historical `test_osa5000-output2.txt` shipped with the original repository cannot be reproduced by any hexamer table bundled here: all 48 combinations (6 tables x 4 sequence segments x 2 steps) were tried, none matched. That file most likely came from a table that was never committed, so regenerate baselines with the current code rather than using it for regression.
+- Progress ETAs are extrapolated from elapsed time, so they are rough for inputs whose transcripts vary a lot in length.
+
+## License
+
+GPL-3.0. See [LICENSE](LICENSE).
