@@ -1,4 +1,7 @@
 ## An accurate tool for predicting lncRNAs based on multiple features. [[Paper]](https://www.mdpi.com/2073-4425/11/9/981/htm)
+
+> **This is the `1.x` branch: the Python 2 version released in 2020, kept for reproducing the published results.** A maintained Python 3 rewrite lives on [`master`](https://github.com/LeiCao97/PreLnc): it installs with `pip install .`, exposes `prelnc` / `prelnc-train` / `prelnc-hexamer`, and no longer needs the Linux-only `txCdsPredict` binary.
+
 PreLnc is mainly used to distinguish long non-coding transcripts from protein-coding transcripts, supporting multiple species of plants and animals.   
 
 ---
