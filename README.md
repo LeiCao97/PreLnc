@@ -4,15 +4,27 @@ PreLnc distinguishes long non-coding transcripts from protein-coding transcripts
 
 Original method: [Genes 2020, 11(9), 981](https://www.mdpi.com/2073-4425/11/9/981/htm).
 
-Version 2.0 is a rewrite of the published `PreLnc-master` code: it is a real installable package with a single command-line interface, it no longer needs the Linux-only `txCdsPredict` binary, it writes proper CSV/TSV tables without overwriting your files, and it reports progress while it runs. Feature computation and the bundled models are unchanged, so `prediction_score` values are identical to the published version.
+Version 2.0 is a rewrite of the published 1.x code (`1.x` branch, tag `v1.0`): it is a real installable package with a single command-line interface, it no longer needs the Linux-only `txCdsPredict` binary, it writes proper CSV/TSV tables without overwriting your files, and it reports progress while it runs. Feature computation and the bundled models are unchanged, so `prediction_score` values are identical to the published version.
 
 ---
 
-## Changes since PreLnc-master
+## Which version do I want?
 
-`PreLnc-master` was a set of Python 2 scripts; 2.0 is one Python 3 package. What that means in practice:
+| Branch / tag | Contents |
+|---|---|
+| `master` (default) | PreLnc 2.0 — Python 3, installable, maintained. This README. |
+| `1.x` | The 2020 Python 2 release, frozen and no longer maintained. Kept unchanged so published results can be reproduced; its README points back here. |
+| `v2.0.0` / `v1.0` | Immutable tags of the two releases, for a fixed snapshot. |
 
-| Area | PreLnc-master | PreLnc 2.0 |
+Stay on `master` unless you specifically need the original scripts: `1.x` requires Python 2.7, a Linux x86-64 `txCdsPredict` binary, and manual `-m` / `-r` model paths.
+
+---
+
+## Changes since 1.x
+
+`1.x` was a set of Python 2 scripts; 2.0 is one Python 3 package. What that means in practice:
+
+| Area | 1.x | PreLnc 2.0 |
 |---|---|---|
 | Python | 2.7 only (`from __future__ import print_function`, `import Bio.Alphabet`) | 3.7+ (tests run on 3.7 and 3.8) |
 | Install | `git clone`, `pip install biopython sklearn`, then edit `~/.bashrc` so `txCdsPredict` is on `PATH` | `python -m pip install .`; no manual `PATH` editing |
@@ -24,17 +36,16 @@ Version 2.0 is a rewrite of the published `PreLnc-master` code: it is a real ins
 | Overwriting | silently replaced the target file | writes `out_1.tsv`, `out_2.tsv`, … instead; `--force` to overwrite; companion files renamed with the same stem |
 | Failed runs | scratch files (`<output>.feature`, a fixed-name `TMP.txt` in the working directory) could be left behind; assembly shelled out to `paste`/`rm`, so it was Unix-only | written to a temporary sibling and moved into place only on success, no shell calls |
 | Feedback | two "start to ..." lines on stderr, then total cost | per-stage progress (percent, done/total, ETA) on stderr and an end-of-run summary listing counts and every file written |
-| Training | `createmodel.py` printed a pkl; feature order implied | `prelnc-train` writes `.pkl` + `.feature.tsv` + `.report.tsv`, and reports training accuracy |
+| Training | `createmodel.py` wrote only a `.pkl`; feature order was implicit | `prelnc-train` writes `.pkl` + `.feature.tsv` + `.report.tsv`, and reports training accuracy |
 | Hexamer table | `bin/make_hexamer_tab.py`, an unmodified copy of the CPAT script that needs CPAT's `cpmodule` on `sys.path` and dies with `NameError` on empty input | `prelnc-hexamer`, same algorithm, explicit error instead of a traceback |
-| Code duplication | `prelnc.py` / `prelnc_plant.py` and `createmodel.py` / `createmodel_plant.py` were near-identical, and `bin/cpmodule/` duplicated the feature primitives | one code path in `prelnc/`; CPAT/CPC2 primitives kept verbatim under `prelnc/legacy/` |
-| Repository size | 45 MB, including a second copy of `models/` and an unused `modelFor8CPUs/` bundle | 9.6 MB, one copy of each bundled model |
+| Code duplication | `prelnc.py` / `prelnc_plant.py` and `createmodel.py` / `createmodel_plant.py` were near-identical; the CPAT/CPC2 primitives lived in `bin/cpmodule/` | one code path in `prelnc/`; the same primitives kept verbatim under `prelnc/legacy/` |
+| Repository size | 18 MB, half of it an unused `models/modelFor8CPUs/` bundle | 9.6 MB, one copy of each bundled model |
 | Tests | none | 27 unittest cases: hexamer parity with the original script, a full prediction run on `example/example.fa`, overwrite/delimiter handling, progress formatting |
-| Version | unversioned | `2.0.0`, `prelnc --version` |
+| Version | no version string in the code (tag `v1.0` added retroactively) | `2.0.0`, `prelnc --version` |
 
 What did **not** change: the feature definitions, the hexamer ratio computation, and the six bundled random-forest models. On `example/example.fa` and the first 100 *O. sativa* transcripts, `prediction_score` and all feature values are bit-for-bit identical to the published output.
 
-Output-format changes are the one thing that can break a downstream script:
-`<output>.features.tsv` is now `<stem>.features.tsv`, the prediction table gained a `prediction` column, and existing files are renamed instead of overwritten. Everything else is additive.
+Output-format changes are the one thing that can break a downstream script: 1.x wrote a single headerless table (all features plus the score) to `<output>`. 2.0 writes two header-ed tables — `<output>` with `transcript_id`, `prediction_score` and `prediction`, and `<stem>.features.tsv` with `transcript_id` plus one column per feature. Existing files are also renamed instead of overwritten. Everything else is additive.
 
 ---
 
@@ -252,8 +263,8 @@ consistency.
 - The bundled `.pkl` models were trained with an old scikit-learn. `pyproject.toml` pins `numpy<2` and `scikit-learn<1.4` so they remain loadable; retraining is recommended for long-term use.
 - `pip install .` needs setuptools 61+ (or network access, so pip can build in an isolated environment). On an offline machine with an old toolchain, upgrade pip/setuptools first.
 - Requires Python 3.7+.
-- `prediction_score` values are unchanged from `PreLnc-master` for the same input and models (verified on `example/example.fa` and 100 *O. sativa* transcripts). What is new in 2.0 is the file naming (`<stem>.features.tsv` instead of `<output>.features.tsv`), the extra `prediction` column, and the `transcript_id` column in the feature table.
-- The `hexamer` column of the historical `test_osa5000-output2.txt` shipped with the original repository cannot be reproduced by any hexamer table bundled here: all 48 combinations (6 tables x 4 sequence segments x 2 steps) were tried, none matched. That file most likely came from a table that was never committed, so regenerate baselines with the current code rather than using it for regression.
+- `prediction_score` values are unchanged from 1.x for the same input and models (verified on `example/example.fa` and 100 *O. sativa* transcripts). What is new in 2.0 is the split into a prediction table (`transcript_id`, `prediction_score`, `prediction`) and a feature table (`<stem>.features.tsv`, with `transcript_id` and a header), plus the refusal to overwrite existing files.
+- The `hexamer` column of a historical development snapshot (`test_osa5000-output2.txt`, not part of the 1.x release) cannot be reproduced by any hexamer table bundled here: all 48 combinations (6 tables x 4 sequence segments x 2 steps) were tried, none matched. That file most likely came from a table that was never committed, so regenerate baselines with the current code rather than using it for regression.
 - Progress ETAs are extrapolated from elapsed time, so they are rough for inputs whose transcripts vary a lot in length.
 
 ## License
